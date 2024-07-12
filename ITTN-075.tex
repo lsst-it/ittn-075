@@ -1,4 +1,4 @@
-\documentclass[PMO,authoryear,toc]{lsstdoc}
+\documentclass[PMO,authoryear,toc,lsstdraft]{lsstdoc}
 \input{meta}
 
 % Package imports go here.
@@ -29,13 +29,13 @@ Julio Constanzo
 \setDocRef{ITTN-075}
 \setDocUpstreamLocation{\url{https://github.com/lsst-it/ittn-075}}
 
-\date{\vcsDate}
+\date{\today}
 
 % Optional: name of the document's curator
 % \setDocCurator{The Curator of this Document}
 
 \setDocAbstract{%
-Rubin IPsec Tunnels 
+The following document details the IPsec tunnels plan and deployment between the summit and SLAC
 }
 
 % Change history defined here.
@@ -43,7 +43,7 @@ Rubin IPsec Tunnels
 % Fields: VERSION, DATE, DESCRIPTION, OWNER NAME.
 % See LPM-51 for version number policy.
 \setDocChangeRecord{%
-  \addtohist{1}{YYYY-MM-DD}{Unreleased.}{Julio Constanzo}
+  \addtohist{1}{2024-07-12}{First Release.}{Julio Constanzo}
 }
 
 
@@ -56,6 +56,12 @@ Rubin IPsec Tunnels
 
 % ADD CONTENT HERE
 % You can also use the \input command to include several content files.
+\include{introduction}
+\include{design}
+\include{equipment}
+\include{ipsec_configuration}
+\include{deployment}
+\include{testing}
 
 \appendix
 % Include all the relevant bib files.
