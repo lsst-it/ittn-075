@@ -1,0 +1,123 @@
+\section{IPsec Configuration}
+
+As mentioned earlier on this document, the sensible configuration will not be disclosed on this document for security reasons, but it will be accesible via request and under Rubin Observatory security access policies.
+
+The IPsec configuration is based on the following official Arista guide documentation release related to their latest EOS-4.32.1F software. The detailed documentation can be found \href{https://www.arista.com/en/um-eos/eos-data-plane-security#xx1007378}{here}
+
+\subsection{Configuring IPsec}
+
+This configuration will use the default IKE version 2 procedure. Keep in mind that this is an example configuration, and the actual configuration will not be disclosed on this document.
+
+\begin{enumerate}
+\item Use ip security command to enter IP security mode. 
+    \begin{lstlisting}
+        switch(config)# ip security
+    \end{lstlisting}
+\item To use IKE version 1, complete the following before completing the default IKE version the steps below.
+        \begin{lstlisting}
+        switch(config)# ip security
+        switch(config-ipsec)# ike policy ike-peerRtr  
+        switch(config-ipsec-ike)# version 1
+        \end{lstlisting}
+\item Create an IKE Policy to be used to communicate with the peer to establish IKE. You have the option of configuring multiple IKE policies.
+    The default IKE Policy values are:
+        \begin{itemize}
+            \item Encryption: AES256 / AES128
+            \item Integrity: SHA256 / SHA128
+            \item DH group: Group 14
+            \item IKE lifetime: 8 hours
+        \end{itemize}
+        \begin{lstlisting}
+        switch(config-ipsec)# ike policy ike-router  
+        switch(config-ipsec-ike)# encryption aes256  
+        switch(config-ipsec-ike)# integrity sha256  
+        switch(config-ipsec-ike)# dh-group 14  
+        switch(config-ipsec-ike)# version 2
+        \end{lstlisting}
+\item If the router is behind a NAT, configure the local-id with the local public IP address. The public IP corresponds to the underlying interface over which the IKE communications are done with the peer.
+        \begin{lstlisting}
+        switch(config-ipsec-ike)# local-id <public ip address>
+        \end{lstlisting}
+\item Create an IPsec Security Association policy to be used in the data path for encryption and integrity. Use the option of enabling Perfect Forward Secrecy by configuring a DH group to the SA. In this example, AES256 is used for encryption, SHA 256 is used for integrity, and Perfect Forward Secrecy is enabled (the DH group is 14).
+        \begin{lstlisting}
+        switch(config-ipsec)# sa policy sa-vrouter  
+        switch(config-ipsec-sa)# esp encryption aes256  
+        switch(config-ipsec-sa)# esp integrity sha256  
+        switch(config-ipsec-sa)# pfs dh-group 14  
+        switch(config-ipsec-sa)# sa lifetime 2  
+        switch(config-ipsec-sa)# exit
+        \end{lstlisting}
+\item Bind or associate the IKE and SA policies together using an IPsec profile. Provide a shared-key, which must be common on both peers. The default profile assigns default values for all parameters that are not explicitly configured in the other profiles. In this example, the IKE Policy ike-peerRtr and SA Policy sa-peerRtr are applied to profile peer-Rtr. Dead Peer Detection is enabled and configured to delete the connection when the peer is down for more than 50 seconds. The peer peer-Rtr is set to be the responder.
+        \begin{lstlisting}
+        switch(config-ipsec)# profile default
+        switch(config-ipsec-profile)# ike-policy ikedefault
+        switch(config-ipsec-profile)# sa-policy sadefault
+        switch(config-ipsec-profile)# shared-key arista
+        switch(config-ipsec-profile)# connection start
+        switch(config-ipsec)# profile vrouter
+        switch(config-ipsec-profile)# ike-policy ike-vrouter
+        switch(config-ipsec-profile)# sa-policy sa-vrouter
+        switch(config-ipsec-profile)# dpd 10 50 clear
+        switch(config-ipsec-profile)# connection add
+        \end{lstlisting}
+\item Configure the WAN interface to be the underlying interface for the tunnel. You must specify an L3 address for the tunnel. If you do not, the switch cannot route packets using the tunnel.
+        \begin{lstlisting}
+        switch(config)# interface Et1  
+        switch(config-if-Et1)# no switchport  
+        switch(config-if-Et1)# ip address 1.0.0.1/24  
+        switch(config-if-Et1)# mtu 1500     
+        \end{lstlisting}
+    Note: Rubin IPsec physical interfaces uses Jumbo frames with value 9214
+\item Apply the IPsec profile to a new tunnel interface. You create the new tunnel interface as part of this step. You can configure the tunnel as a VTI IPsec tunnel. In this example, the new tunnel interface is Tunnel0. The new tunnel interface is configured to use IPsec. The other end of the tunnel also needs to be configured as a GRE-over-IPsec tunnel.
+        \begin{lstlisting}
+        switch(config)# interface tunnel0  
+        switch(config-if-Tu0)# ip address 1.0.3.1/24  
+        switch(config-if-Tu0)# mtu 1394  
+        switch(config-if-Tu0)# tunnel source 1.0.0.1  
+        switch(config-if-Tu0)# tunnel destination 1.0.0.2  
+        switch(config-if-Tu0)# tunnel ipsec profile vrouter
+        \end{lstlisting}
+        Note: Rubin IPsec tunnel interfaces uses Jumbo frames with value 9214. Keep in mind that the IPsec add an overhead of 82 bytes.
+\end{enumerate}    
+    
+\subsubsection{IPsec Example Configuration}
+        \begin{lstlisting}
+            ip security
+            ike policy ikebranch1
+            integrity sha256
+            dh-group 15
+            !
+            sa policy sabranch1
+            sa lifetime 2
+            pfs dh-group 14
+            !
+            profile hq
+            mode tunnel
+            ike-policy ikebranch1
+            sa-policy sabranch1
+            connection add
+            shared-key keyAristaHq
+            dpd 10 50 clear
+            !
+            interface Tunnel1
+            mtu 1404
+            ip address 1.0.3.1/24
+            tunnel source 1.0.0.1
+            tunnel destination 1.0.0.2
+            tunnel ipsec profile hq
+            !
+            interface Ethernet1
+            no switchport
+            ip address 1.0.0.1/24
+            !        
+        \end{lstlisting}
+
+\subsection{Displaying IPsec Information}
+    \begin{itemize}
+        \item Use the command "show ip security connection  vrf all" to see all the secure connections status
+        \item Use the "show ip security policy" command to display the IPsec policy information.
+        \item Use the "show ip security profile" command to display the IPsec profile information.
+        \item Use the "show kernel ipsec vrf all" command to displaya detailed view of the IPsec demon, state and parameters.
+        \item Use the "show ip route vrf all" command to display the routing table list and check which IPsec tunnel is active.
+    \end{itemize}
+    

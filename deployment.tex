@@ -1,0 +1,32 @@
+\section{IPsec Tunnels Deployment}
+
+\subsection{Hardware Location}
+At SLAC, the IPsec switches were installed at:
+    \begin{itemize}
+        \item SRCF located in row T1 and row T2
+        \item Rack is commonly called "Embargo"
+        \item Used as TOR switches for the Embargo storage cluster
+    \end{itemize}
+
+At Rubin, the IPsec switches were installed at:
+    \begin{itemize}
+        \item Summit Data Center at Cerro Pachón
+        \item Rack SDC-A02
+        \item Used as TOR switches for the Rubin LFA cluster
+    \end{itemize}
+
+\subsection{Rubin MLAG Configuration}
+Both sites are using their respective nodes in MLAG fashion. To see the full MLAG configuration for Rubin IPsec MLAG setup, you can find it here: \href{https://confluence.lsstcorp.org/display/IT/ITTN-075+-+Rubin+IPsec+MLAG+Configuration}{Rubin IPsec MLAG Configuration}
+
+\subsection{Rubin IPsec Configuration}
+
+The IPsec configuration deployed for both sites can be found here: \href{https://confluence.lsstcorp.org/display/IT/ITTN-075+-+IPsec+Configuration}{Rubin IPsec Configuration}
+
+\subsection{Rubin IPsec Tunnels and OSPF Configuration}
+The IPsec configuration deployed for both sites can be found here: \href{https://confluence.lsstcorp.org/display/IT/ITTN-075+-+Rubin+IPsec+Tunnels+and+OSPF+Configuration}{Rubin IPsec Tunnels and OSPF Configuration}
+
+\subsection{IPsec Tunnels Network Diagram}
+The IPsec tunnels detailed diagram can be found here: \href{https://confluence.lsstcorp.org/display/IT/ITTN-075+-+Rubin+IPsec+Tunnels+Network+Diagram}{Rubin IPsec Tunnels Diagram}
+
+\subsection{Summit to Base connection for IPsec switches}
+The IPsec switches are directly connected to the base using the DWDM and into the Rubin border routers, the detailed diagram of those 4 x 100Gbps connections can be found here: \href{https://confluence.lsstcorp.org/display/IT/ITTN-075+-+Rubin+IPsec-to-BRs}{Rubin IPsec-to-BRs}
